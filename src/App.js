@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
+import shortid from "shortid";
+import { useHistory } from "react-router-dom";
 
-const App = (props) => {
+const App = () => {
+    const [name, setName] = useState("");
+
+    const history = useHistory();
+
     const [isSocketConnected, setIsSocketConnected] = useState(false);
-    const socket = io("http://localhost:4001");
+    const socket = io("http://localhost:4001/ttt");
 
     const socketListen = () => {
         if (isSocketConnected) {
@@ -14,19 +20,32 @@ const App = (props) => {
             setIsSocketConnected(true);
         });
 
-        socket.on("disconnect", () => {
-            console.warn("im disconnected");
+        socket.on("tihor", (data) => {
+            console.log(data);
         });
-
-        socket.emit("tihor", "hey, im a message");
     };
 
     useEffect(socketListen, []);
 
+    const nameChangeHandler = (event) => {
+        setName(event.target.value);
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        setName("");
+        const id = shortid.generate();
+        socket.emit("tihor", "hey, im a message " + id);
+
+        history.push("game?id=" + id);
+    };
+
     return (
-        <>
-            <div>Rohith - TIHOR</div>
-        </>
+        <form onSubmit={handleSubmit}>
+            <label>Name:</label>
+            <input type="text" value={name} onChange={nameChangeHandler} />
+            <input type="submit" value="Submit" />
+        </form>
     );
 };
 
